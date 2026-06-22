@@ -1,3 +1,6 @@
+# DeepAgents 提示词配置：集中管理主智能体和各子智能体的名称、路由描述与系统提示词
+# 主智能体读取 description 做任务分派，子智能体读取 system_prompt 约束自己的执行方式
+
 # 主智能体配置：负责理解用户任务、规划步骤、调度子智能体并汇总最终结果
 main_agent:
   system_prompt: |
