@@ -19,9 +19,7 @@ services:
     # 与 Python 连接配置保持一致，避免中文字段或日期时间在导入、查询时出现偏差
     command:
       - --character-set-server=utf8mb4
-      - --collation-server=utf8mb4_unicode_ci
-      - --default-time-zone=+08:00
-      - --sql-mode=TRADITIONAL
+      - --collation-server=utf8mb4_general_ci
     ports:
       # .env.example 默认使用 3307，避免和本机已有 MySQL 的 3306 端口冲突
       - "${MYSQL_PORT:-3306}:3306"

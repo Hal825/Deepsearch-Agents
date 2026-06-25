@@ -1,0 +1,28 @@
+2026-06-23 15:24:18.647 | ERROR | app.agent.main_agent:run_deep_agent:163 | Exception:
+
+2026-06-23 15:24:30.354 | ERROR | app.agent.main_agent:run_deep_agent:163 | Exception:
+
+2026-06-23 16:40:31.045 | ERROR | app.tools.tavily_tool:internet_search:51 | Exception:
+
+2026-06-23 16:40:31.046 | ERROR | app.tools.tavily_tool:internet_search:51 | Exception:
+
+2026-06-23 16:40:31.046 | ERROR | app.tools.tavily_tool:internet_search:51 | Exception:
+
+2026-06-23 16:40:31.111 | ERROR | app.agent.main_agent:run_deep_agent:163 | Exception:
+
+2026-06-23 17:08:48.171 | ERROR | app.tools.tavily_tool:internet_search:51 | Exception:
+
+2026-06-23 17:08:48.182 | ERROR | app.tools.tavily_tool:internet_search:51 | Exception:
+
+2026-06-23 17:08:48.196 | ERROR | app.agent.main_agent:run_deep_agent:163 | Exception:
+
+2026-06-23 17:08:48.244 | ERROR | app.tools.tavily_tool:internet_search:51 | Exception:
+
+2026-06-23 17:11:00.908 | ERROR | app.tools.tavily_tool:internet_search:51 | Exception:
+
+2026-06-23 17:11:00.929 | ERROR | app.agent.main_agent:run_deep_agent:163 | Exception:
+
+2026-06-23 17:11:00.943 | ERROR | app.tools.tavily_tool:internet_search:51 | Exception:
+
+2026-06-23 17:11:00.947 | ERROR | app.tools.tavily_tool:internet_search:51 | Exception:
+

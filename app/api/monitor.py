@@ -13,6 +13,7 @@ from typing import Any, Optional
 from fastapi import WebSocket
 
 from app.api.context import get_thread_context
+from app.utils.logger import logger  # 导入日志
 
 
 class ToolMonitor:
@@ -56,25 +57,29 @@ class ToolMonitor:
             "timestamp": datetime.datetime.now().isoformat(),
         }
 
+        # 获取当前上下文中的 thread_id，用于日志和 WebSocket 推送
+        thread_id = get_thread_context()
+        task_logger = logger.bind(thread_id=thread_id) if thread_id else logger
+
         if self.websocket_manager:
             try:
-                thread_id = get_thread_context()
                 manager_loop = self.websocket_manager.loop
-
                 if manager_loop and thread_id:
                     self._send_to_websocket(payload, thread_id, manager_loop)
+                else:
+                    task_logger.warning(f"无法发送 WebSocket 事件: thread_id={thread_id}, loop={manager_loop}")
             except Exception as e:
-                print(f"[Monitor] WebSocket send failed: {e}")
+                task_logger.error(f"WebSocket 发送失败: {e}")
 
         # DeepAgents 脚本调试时，如果运行时暴露了 stream_writer，也同步写入流式输出
         if hasattr(builtins, "runtime") and hasattr(builtins.runtime, "stream_writer"):
             try:
                 builtins.runtime.stream_writer(payload)
-            except Exception:
-                pass
+            except Exception as e:
+                task_logger.error(f"stream_writer 写入失败: {e}")
 
-        # 控制台保底输出，便于无前端场景下观察执行过程
-        print(f"\n[Monitor:{event_type}] {message}")
+        # 控制台保底输出（同时写入日志文件）
+        task_logger.info(f"[Monitor:{event_type}] {message}")
 
     def _send_to_websocket(
         self,
@@ -127,6 +132,10 @@ class ToolMonitor:
         """报告任务最终结果"""
         self._emit("task_result", "任务执行完成", {"result": result})
 
+    def report_task_cancelled(self) -> None:
+        """报告任务已被用户取消"""
+        self._emit("task_cancelled", "任务已取消")
+
     def report_session_dir(self, path: str) -> None:
         """报告当前任务工作目录"""
         self._emit("session_created", f"工作目录已创建: {path}", {"path": path})
@@ -151,19 +160,21 @@ class ConnectionManager:
         """绑定 FastAPI 主事件循环，并同步注册到 monitor"""
         self.loop = loop
         monitor.set_websocket_manager(self)
-        print(f"[Monitor] ConnectionManager manually bound to loop: {id(self.loop)}")
+        logger.info(f"ConnectionManager 绑定事件循环: {id(self.loop)}")
 
     async def connect(self, websocket: WebSocket, thread_id: str) -> None:
         """接受 WebSocket 连接，并按 thread_id 保存"""
         await websocket.accept()
         self.active_connections[thread_id] = websocket
-        print(f"Client connected: {thread_id}")
+        logger.info(f"WebSocket 连接建立: thread_id={thread_id}")
 
     def disconnect(self, websocket: WebSocket, thread_id: str) -> None:
         """移除已经断开的 WebSocket 连接"""
-        if thread_id in self.active_connections:
+        if self.active_connections.get(thread_id) is websocket:
             del self.active_connections[thread_id]
-        print(f"Client disconnected: {thread_id}")
+            logger.info(f"WebSocket 连接断开: thread_id={thread_id}")
+        else:
+            logger.warning(f"旧 WebSocket 断开，但当前连接保留: thread_id={thread_id}")
 
     async def send_personal_message(self, message: str, websocket: WebSocket) -> None:
         """向指定 WebSocket 发送纯文本消息"""
@@ -174,6 +185,8 @@ class ConnectionManager:
         if thread_id in self.active_connections:
             websocket = self.active_connections[thread_id]
             await websocket.send_json(message)
+        else:
+            logger.warning(f"尝试向不存在的 thread_id 发送消息: {thread_id}")
 
 
 manager = ConnectionManager()
